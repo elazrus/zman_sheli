@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <title>Zman Prototype</title>
+    <!-- stylesheets -->
+    <link rel="stylesheet" type="text/css" href="src/css/themes/south-street/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="src/css/timeline.css">
+    <!--<link rel="stylesheet" type="text/css" href="src/css/timeline-theme.css">
+    <link rel="stylesheet" type="text/css" href="src/css/default.css">-->
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Dancing+Script|Antic+Slab" />
+    <!-- scripts -->
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="src/js/d3.min.js"></script>
+    <script type="text/javascript" src="src/js/jquery-1.12.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-migrate-1.3.0.js"></script>
+    <script type="text/javascript" src="src/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="src/js/timeline-min.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/nicgirault/circosJS/master/dist/circosJS.js"></script>
+    
+    <style>
+      #title    { width:100%; height:25px; font-size:20px; text-align:center; }
+      #content  { }
+      #circular { width:100%; height:400px; }
+      #dialog1  { overflow-x:hidden; font-size:12px; }
+      #chart    { display:block; margin:auto; }
+      #dialog2  { overflow-x:hidden; font-size:12px; }
+      #linear   { }
+      #events   { margin:0; padding:0; list-style-type:none; }
+      .timeline-event-content { font-size:10px; }
+    </style>
+    
+  </head>
+  <body>
+    
+    <div id="title">Z'man</div>
+    <div id="content">
+      <div id="circular"">
+        <div id="dialog1"><p id="contentholder"></p></div>
+        <svg id="chart"></svg>
+        <div id="dialog2"><p id="contentholder"></p></div>
+      </div>
+      <div id="linear"></div>
+    </div>
+    
+    <!-- Information about where the used icons come from -->
+  <p style="color:gray; font-size:10px; font-style:italic;">
+    Icons by <a href="http://dryicons.com" target="_blank" title="Aesthetica 2  Icons by DryIcons" style="color:gray;">DryIcons</a>
+    and <a href="http://www.tpdkdesign.net" target="_blank" title="Refresh Cl Icons by TpdkDesign.net" style="color:gray;">TpdkDesign.net</a>
+  
+    <script type="text/javascript">
+      var timeline;
+
+      google.load("visualization", "1");
+
+      // Set callback to run when API is loaded
+      google.setOnLoadCallback(drawVisualization);
+
+      // Called when the Visualization API is loaded.
+      function drawVisualization() {
+        d3.tsv("data/dates.tsv", function(error, events) {
+          if (error) throw error;
+      
+          var unselected = '#d9d9d9',
+              selected   = '#bc80bd';
+      
+          var allMonths = {
+            'Tishrei':  {
+              'phrase': 'Perfect yourself',
+              'short':  'The message of Tishrei is to pray for the world but to perfect ourselves.',
+              'long':   '"Everyone thinks of changing the world," Leo Tolstoy famously said, "but no one things of changing himself." Judaism always understood the wisdom of these words. Every Rosh Hashanah starts with the commandment for personal introspection. Every New Year, as we consider the fate of the world, God demands of us to review our own lives, to reflect upon our personal failing, and to begin a process of repentance.\nThe wold is nothing more than a conglomeration of individuals - and when we think of its failings we need first to beat our own breasts in confession and contrition.\nHow remarkable that when the high priest offered his prayers in the Holy of Holies on Yom Kippur, he followed the sequence of atonement first for himself, then for his household and only then for the entire congregation of Israel.\nThe message of the first month is to pray for the world but to perfect ourselves.'
+            }, 
+            'Cheshvan': {
+              'phrase': 'Make every day count',
+              'short':  'Cheshvan teaches us that every day can and should be lived as a holiday.',
+              'long':   'The calendar year begins with a month containing a host of holidays. It is followed by a month not marked by even a single festival. There is a profound idea in this sequence. Cheshvan is meant to remind us that our lives are much more than the days marked by special celebration. The true test of our character is the way in which we treat the "every day" moments of our existence. Judaism does not have a Mother\'s Day or a Father\'s Day. Honoring parents and showing them proper gratitude dare not be restricted to a one day occurrence. Anniversaries are nice occasions on which to offer gifts of love to one\'s mate, but far more beautiful is to give expression to the preciousness of a relationship on a regular and consistent basis.\nIn a remarkable passage in the Talmud, the rabbis ask which verse is the single most important one in the entire Bible. The Rabbi who offers the last in a series of opinions - which probably makes it the most correct response - says it is the one which requires of us to offer a sacrifice every morning and a sacrifice every evening. It is the verse which takes all the ideals of Torah and places them on the highest level when performed consistently, on a daily basis. Cheshvan teaches us that every day can and should be lived as a holiday.'     
+            }, 
+            'Kislev':   {
+              'phrase': 'Fight with light',
+              'short':  'Kislev reminds us never to give in to the darkness of personal difficulties.',
+              'long':   'In the middle of the winter when we are enveloped by darkness we light the candles of Chanukkah. The Festival of Light recalls to us not only the miracle of the Maccabees but a central truth of our faith: no matter how perilous our plight, no matter how impossible our situation, "not with might and not with power, but with my spirit, says the Lord." There was not enough oil sufficient for even one night but it lasted all eight, against all rules of nature and all rational expectations. Chanukkah is the holiday which teaches us the message of hope against all odds. Kislev reminds us never to give in to the darkness of personal difficulties. Despair and depression do not belong in the vocabulary of believers.\nAlthough attributed to others, we were the first to say it is better to light a candle than to curse the darkness.'
+            }, 
+            'Tevet':    {
+              'phrase': 'Breaking the walls',
+              'short':  'Tevet reminds us to grieve at the death of civilization long before we are forced to witness its actual funeral.',
+              'long':   'The 10th of the month of Tevet is a day of fasting and mourning. We commemorate the day when the walls of the city of Jerusalem were breached leading to the destruction of the first temple. It is a remarkable insight: tragedy is not only when the temple itself is burning. We need to recognize and to beware of the moments which mark the breaking of the walls which help to preserve the holy.\nIt may be too late to scream out when evil is rampant and crime is contagious. We need, every one of us, to reflect upon the breaking of the walls which define civilized behavior, the ways in which morality becomes every more dishonored and simple etiquette rarer and almost unheard of. Tevet reminds us to grieve at the death of civilization long before we are forced to witness its actual funeral.'
+            }, 
+            'Shvat':    {
+              'phrase': 'Silent new beginnings',
+              'short':  'Shvat teaches us to recognize a new beginning even before it is clearly evident.',
+              'long':   'The 15th day of this month, Tu B\'Shvat brings with it the celebration of spring even though it is still midwinter. It wants us to remember that the seed of the fruits of summer take root much earlier - a lesson we might want to apply to every part of our lives.\n"When shall I begin the education of my child?" someone once asked Sigmund Freud. "How old is he now?" Freud asked. When told the child was three, Freud responded, "Rush right home, you\'ve wasted the most important three years already." The first word of the Torah is B\'reishit - in the beginning. The beginning shapes us like nothing else. Shvat teaches us to recognize a new beginning even before it is clearly evident.'
+            }, 
+            'Adar':     {
+              'phrase': 'Hidden miracles',
+              'short':  'With the perspective of Adar we will be able to recognize hidden miracles all the days of our lives.',
+              'long':   'Miracles come in different guises. There are open and clear miracles like the splitting of the sea when the Jews fled from the Egyptians. Far more often, thought, miracles take the form of the Purim story. Every part of the downfall of Haman could be confused with coincidence, the victory of Mordecai and Esther as happy happenstance. Throughout our lifetimes we need the example of the Purim story to make us recall, as the beautiful saying goes, that coincidence is merely God\'s way of choosing to remain anonymous. Do miracles till happen in our generation? Of course they do - and with the perspective of Adar we will be able to recognize them all the days of our lives.'
+            }, 
+            'Nisan':   {
+              'phrase': 'Centrality of family',
+              'short':  'Nisan begs us to recall the centrality of family both for the preservation of the Jewish people as well as for personal fulfillment.',
+              'long':   'The history of the Jewish people begins with a celebration centered on the home and family. Passover teaches us that to be truly free is to have time to be surrounded by children and loved ones. Passover makes every parent a teacher, every home a sanctuary. Children are meant to ask questions; parents fulfill their role by responding with stories of our collective past and shared hopes for our messianic future.\nIt is more than tragic today to read of the breakdown of family life, of the lack of communication between generations, and the consequences of the difficulties of making a living preventing so many from truly making a life. Nisan begs us to recall the centrality of family both for the preservation of the Jewish people as well as for personal fulfillment.'
+            }, 
+            'Iyyar':    {
+              'phrase': 'Centrality of Israel',
+              'short':  'Iyyar asks us to reflect upon the importance of Israel as part of our biblical destiny - and demands our involvement and support in light of the powerful contemporary threats to its continued existence.',
+              'long':   'Iyyar in our generation is the month in which we focus on the mircale of our modern-day return to Israel and to Jerusalem. It is in Iyyar that we celebrate both Yom HaAtzmaut as well as Yom Yerushalayim. We have witnessed at least a partial fulfillment of the words of the prophets for the end of days.\nWhat we do not as yet enjoy is the peace and tranquility Isaiah promised would be granted us at the time of final redemption. Hatred of Israel goes beyond all rational understanding and hatred of Jews has increased beyond all we would have considered possible after the Holocaust. Iyyar asks us to reflect upon the importance of Israel as part of our biblical destiny - and demands our involvement and support in light of the powerful contemporary threats to its continued existence.'
+            }, 
+            'Sivan':    {
+              'phrase': 'Centrality of Torah',
+              'short':  'Sivan reminds us of the gift of Torah and to make it the center of our lives and the compass for our goals.',
+              'long':   'The Pew report shockingly tells us a majority of Jews believe a sense of humor is what defines us. The irrefutable truth is our existence is based on Torah - and what occurred in Sivan at Sinai a long time ago is what defines our mission to the world and makes us, in the words of the Bible, a kingdom of priests and a holy nation.\nTorah is our unique gift to the world. If you seek happiness, fulfillment, and divine blessings - make the gift of Sivan the center of your life and the compass for its goals.\n"It is a tree of life for those who attach themselves to it and thos who support it find joy."'
+            }, 
+            'Tamuz':   {
+              'phrase': 'Broken tables',
+              'short':  'Tamuz shows us that the gift of Torah must be earned.',
+              'long':   'Ignore Torah at your own peril. On the 17th of Tamuz Moses descended the mountain with the tablets in his hand and saw the Jews worshipping the Golden calf. He knew he had no alternative but to smash them. A people who lacked the wisdom to observe their teaching didn\'t deserve the tablets of stone containing the Decalogue.\nWe fast to this day to commemorate the moment when the Jews proved themselves unworthy. Can we be foolish enough to repeat the sin of our ancestors?'
+            }, 
+            'Av':       {
+              'phrase': 'God is our Father',
+              'short':  'The great consolation of the month of Av which so clearly demonstrates we are responsible for our sins is that no matter what, God remains our father.',
+              'long':   'Tragedy after tragedy repeated itself on the ninth day of Av throughout history. From the date of the destruction of both temples to the day on which World War I began, it was a day bringing with it God\'s anger at our sinfulness.\nPerhaps the only consolation is the very name of the month, Av, which also means father. Transgression has consequences. Yet the great consolation of this very month which so cleary demonstrates we are responsible for our sins is that no matter what, God remains our father. We will always be his children. And that knowledge comforts us as we seek to maintain our relationship.'
+            }, 
+            'Elul':     {
+              'phrase': 'Divine love',
+              'short':  'Elul reassures us that God\'s love is so great that no matter where we stand today we are still welcomed into the Divine presence if only we choose to move a step forward.',
+              'long':   'The month before Rosh Hashanah is an acronym for a beautiful phrase: Ani L\'dodi V\'dodi Li - I am for my beloved and my beloved is for me (Song of Songs). As we approach the New Year, the name of the month reminds us that we enjoy a very special bond of love with the Creator.\nSo often, what stops us from repentance is the feeling that we have already strayed too far. What prevents us from getting closer to God is our assumption that the distance between us is too great to be spanned. Elul reassures us. God\'s love for us is so great that no matter where we stand today we are still welcomed into the Divine presence if only we choose to move a step forward.]n'
+            }
+          };
+      
+          var month_layout = [];
+          for (var month in Object.keys(allMonths)) {
+            month = Object.keys(allMonths)[month];
+            month_layout.push({ 'len': 30, color: unselected, 'label': month, 'id': month });
+          }
+      
+          var circos = new circosJS({
+            container: '#chart',
+            width: 400,
+            height: 400,
+          }); 
+
+          var options = {
+            innerRadius: 150,
+            outerRadius: 190,
+            ticks: { display: false },
+            labels: {
+              position: 'center',
+              display: true,
+              size: 14,
+              color: '#000',
+              radialOffset: 15,
+            }
+          };
+
+          circos.layout(options, month_layout)
+            .render();
+      
+          // Create and populate a data table.
+          var data = new google.visualization.DataTable();
+          data.addColumn('datetime', 'start');
+          data.addColumn('datetime', 'end');
+          data.addColumn('string', 'content');
+
+          var monthMap = {},
+              eventMap = {},
+              indexMap = {};
+              
+          for (var month in allMonths) monthMap[month] = [];
+          
+          for (var i in events) {
+            var event = events[i];
+            
+            var start = event['Start Gregorian Date'].indexOf('/') > -1 ? event['Start Gregorian Date'].split('/') : null,
+                end   = event['End Gregorian Date'].indexOf('/') > -1 ? event['End Gregorian Date'].split('/') : null;
+            
+            start = start ? new Date(0, start[0]-1, start[1]) : null;
+            end   = end ? new Date(0, end[0]-1, end[1]) : null;
+            
+            if (start) start.setFullYear(event['Start Gregorian Year']);
+            if (end) end.setFullYear(event['End Gregorian Year']);
+            
+            data.addRow([start, end, event['Event']]);
+            
+            var months = [ event['Start Hebrew Date'].split(' ')[1] ];
+            if (event['End Hebrew Date'] && event['End Hebrew Date'].indexOf(' ') > -1) months.push( event['End Hebrew Date'].split(' ')[1] );
+            
+            eventMap[ event['Event'] ] = event;
+            eventMap[ event['Event'] ]['id'] = i;
+            eventMap[ event['Event'] ]['months'] = months;
+            
+            indexMap[i] = event;
+            indexMap[i]['months'] = months;
+            
+            for (var month in months) {
+              month = months[month];
+              monthMap[month].push(i);
+            }
+          }
+
+          // specify options
+          var options = {
+            width:  "100%",
+            height: "200px",
+            //editable: true,   // enable dragging and editing events
+            enableKeys: true,
+            axisOnTop: false,
+            showNavigation: true,
+            showButtonNew: true,
+            animate: true,
+            animateZoom: true,
+            layout: "box"
+          };
+
+          // Instantiate our timeline object.
+          timeline = new links.Timeline(document.getElementById('linear'), options);
+
+          // Draw our timeline with the created data and options
+          timeline.draw(data);
+          
+          $( '.timeline-event-content' ).on('click', function() {
+            var event = eventMap[ $( this ).html() ],
+                months = event.months;
+            
+            $( "#dialog1" ).dialog({ title: '' });
+            $( "#dialog2" ).dialog({ title: '' }); 
+            $( "#dialog1 #contentholder" ).html(''); 
+            $( "#dialog2 #contentholder" ).html(''); 
+            for (var month in allMonths) $( 'path#' + month ).css('fill',unselected);   
+                
+            for (var i=0; i < months.length; i++) {
+              var month = months[i];
+              $( "#dialog"+(i+1) ).dialog({ title: month });
+              $( "#dialog"+(i+1)+" #contentholder" ).html(allMonths[month]['long']);
+              $( 'path#' + month ).css('fill',selected);
+            } 
+          });
+          
+          $( 'path' ).on('click', function() {
+            $( "#dialog1" ).dialog({ title: '' });
+            $( "#dialog2" ).dialog({ title: '' }); 
+            $( "#dialog1 #contentholder" ).html(''); 
+            $( "#dialog2 #contentholder" ).html(''); 
+            for (var month in allMonths) $( 'path#' + month ).css('fill',unselected); 
+            
+            var month = $( this ).attr('id'),
+                events = '';
+            
+            for (var index in monthMap[month]) {
+              index = monthMap[month][index];
+              events += '<li>' + indexMap[index]['Event'] + '</li><br>';
+            } 
+            events = '<ul id="events">' + events + '</ul>';
+            
+            $( "#dialog1" ).dialog({ title: month });
+            $( "#dialog1 #contentholder" ).html(allMonths[month]['long']);
+            
+            $( "#dialog2" ).dialog({ title: 'Events' });
+            $( "#dialog2 #contentholder" ).html(events);
+            $( 'path#' + month ).css('fill',selected);
+            
+            timeline.setSelection([]);
+          });
+          
+          $( "#dialog1" ).dialog({ 
+            draggable: false,
+            resizable: false,
+            position: { of: $( "#circular" ), my: 'left top', at: 'left top' },
+            minWidth: 0,
+            width: (window.innerWidth-440) / 2.0,
+            height: 400
+          });
+          $( "#dialog1" ).siblings().find('.ui-button').hide();
+          
+          $( "#dialog2" ).dialog({ 
+            draggable: false,
+            resizable: false,
+            position: { of: $( "#circular" ), my: 'right top', at: 'right top' },
+            minWidth: 0,
+            width: (window.innerWidth-440) / 2.0,
+            height: 400
+          });
+          $( "#dialog2" ).siblings().find('.ui-button').hide();
+        });
+      }
+
+      /**
+       * Zoom
+       * @param zoomVal
+       */
+      function zoom(zoomVal) {
+        timeline.zoom(zoomVal);
+        timeline.trigger("rangechange");
+        timeline.trigger("rangechanged");
+      }
+
+      /**
+       * Adjust the visible time range such that all events are visible.
+       */
+      function adjustVisibleTimeRangeToAccommodateAllEvents() {
+        timeline.setVisibleChartRangeAuto();
+      }
+
+      /**
+       * Move
+       * @param moveVal
+       */
+      function move(moveVal) {
+        timeline.move(moveVal);
+        timeline.trigger("rangechange");
+        timeline.trigger("rangechanged");
+      }
+
+      /**
+       * Move the visible range such that the current time is located in the center of the timeline.
+       */
+      function moveToCurrentTime() {
+        timeline.setVisibleChartRangeNow();
+      }	
+
+    </script>
+  </body>
+</html>
